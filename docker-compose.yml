@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  # ── Service 1: Seismic Ingester ──────────────────────────
+  # Polls USGS feed every 60s, deduplicates, publishes to SQS
+  ingester:
+    build: ./ingester
+    env_file: .env
+    restart: always
+    depends_on:
+      - api
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Service 2: Impact Processor ──────────────────────────
+  # Reads from SQS, calculates impact scores, writes to DynamoDB
+  processor:
+    build: ./processor
+    env_file: .env
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Service 3: Alert Evaluator ───────────────────────────
+  # Monitors new earthquakes, creates alerts for high/medium severity
+  alert-evaluator:
+    build: ./alert-evaluator
+    env_file: .env
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Service 4: REST API ──────────────────────────────────
+  # FastAPI server exposing earthquake data and alerts
+  api:
+    build: ./api
+    env_file: .env
+    ports:
+      - "8000:8000"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Service 5: Geo Dashboard ─────────────────────────────
+  # Nginx serving the Leaflet.js frontend, proxying /api to FastAPI
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always
