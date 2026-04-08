@@ -187,7 +187,7 @@ docker compose down
 |--------|------|
 | Rishi | Infrastructure, Seismic Ingester, REST API |
 | Asha | Impact Processor, Alert Evaluator, Seed Data |
-| Haina | Geo Dashboard (Leaflet + Nginx) |
+| Hania | Geo Dashboard (Leaflet + Nginx) |
 
 ---
 
